@@ -195,10 +195,15 @@
 
 <script type="module">
   // Boot loader: fetch Three.js from a CDN (tries several), then start the game.
+  const errLog = [];
   const showError = (err, hint) => {
+    const msg = '⚠️ ' + (err && err.message ? err.message : err) + (hint ? ' — ' + hint : '');
     fill.style.background = '#ef4444';
     text.style.color = '#ff9a9a';
-    text.textContent = '⚠️ ' + (err && err.message ? err.message : err) + (hint ? ' — ' + hint : '');
+    text.textContent = msg;
+    errLog.push(msg);
+    const le = document.getElementById('load-log');
+    if (le) le.innerHTML += '<br>❌ ' + msg;
   };
   window.addEventListener('error', (e) => showError(e.error || e.message, 'try the latest Chrome/Edge'));
   try {
@@ -227,7 +232,7 @@
     }
     fill.style.width = '60%';
     text.textContent = 'Building city...';
-    const BUILD_TAG = 'b4-0911';
+    const BUILD_TAG = 'b5-0911';
     const logEl = document.getElementById('load-log');
     const t0 = Date.now();
     const logLines = [`build ${BUILD_TAG} starting...`];
@@ -255,6 +260,7 @@
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   } catch (err) {
+    try { clearInterval(watchdog); } catch (e) {}
     showError(err, location.protocol === 'file:'
       ? 'open Veer5-offline.html instead, or serve this folder with a local server'
       : 'check connection, then reload');

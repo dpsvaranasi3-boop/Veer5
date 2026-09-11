@@ -99,9 +99,13 @@ const bootStub = `
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   }).catch(function (err) {
+    try { clearInterval(watchdog); } catch (e) {}
+    var msg = 'Error starting game: ' + (err && err.message ? err.message : err);
     fill.style.background = '#ef4444';
     text.style.color = '#ff9a9a';
-    text.textContent = 'Error starting game: ' + (err && err.message ? err.message : err);
+    text.textContent = msg;
+    logLines.push('ERROR: ' + msg);
+    renderLog();
     setTimeout(function () { throw err; }, 0);
   });
 })();

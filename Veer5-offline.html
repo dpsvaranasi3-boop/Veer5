@@ -57251,28 +57251,31 @@ async function boot(progress) {
   G.audio = createAudio(G);
   G.audio.setEnabled(G.settings.sound);
   const tick = () => new Promise(r => setTimeout(r, 20));
-  const stage = async (name, fn) => {
+  const stage = async (name, fn, doneP = null, doneMsg = null) => {
+    const s0 = performance.now();
     try { await fn(); }
     catch (e) { throw new Error(`[${name}] ${e && e.message ? e.message : e}`); }
+    const ms = Math.round(performance.now() - s0);
+    if (doneP !== null) progress(doneP, (doneMsg || name) + ` ✓ (${ms}ms)`);
   };
   progress(0.05, 'Building city...');
   await tick();
-  await stage('world', () => buildWorld(G, (p, msg) => progress(p * 0.7, msg)));
+  await stage('world', () => buildWorld(G, (p, msg) => progress(p * 0.7, msg)), 0.72, 'City built');
   progress(0.75, 'Creating Veer...');
   await tick();
-  await stage('player', async () => { buildPlayer(G); });
+  await stage('player', async () => { buildPlayer(G); }, 0.78, 'Veer created');
   await tick();
   progress(0.82, 'Spawning traffic...');
   await tick();
-  await stage('vehicles', async () => { buildVehicles(G); });
+  await stage('vehicles', async () => { buildVehicles(G); }, 0.85, 'Traffic spawned');
   await tick();
   progress(0.88, 'Waking up citizens...');
   await tick();
-  await stage('peds', async () => { buildPeds(G); });
+  await stage('peds', async () => { buildPeds(G); }, 0.90, 'Citizens awake');
   await tick();
-  await stage('activities', async () => { buildActivities(G); });
+  await stage('activities', async () => { buildActivities(G); }, 0.93, 'Races ready');
   await tick();
-  await stage('ui', async () => { buildUI(G); });
+  await stage('ui', async () => { buildUI(G); }, 0.95, 'HUD ready');
   await tick();
   progress(0.96, 'Polishing...');
   await tick();
@@ -57540,9 +57543,13 @@ async function boot(progress) {
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   }).catch(function (err) {
+    try { clearInterval(watchdog); } catch (e) {}
+    var msg = 'Error starting game: ' + (err && err.message ? err.message : err);
     fill.style.background = '#ef4444';
     text.style.color = '#ff9a9a';
-    text.textContent = 'Error starting game: ' + (err && err.message ? err.message : err);
+    text.textContent = msg;
+    logLines.push('ERROR: ' + msg);
+    renderLog();
     setTimeout(function () { throw err; }, 0);
   });
 })();
