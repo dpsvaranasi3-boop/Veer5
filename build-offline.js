@@ -17,10 +17,10 @@ const esc = (s) => s.replace(/<\/script/gi, '<\\/script'); // keep bundle parse-
 console.log('--- VEER 5 offline masterfile build ---');
 
 // ---------- 1. HTML shell + CSS ----------
-let html = read('index.html');
+let html = read('game.html');
 const css = read('css/style.css');
 const linkTag = '<link rel="stylesheet" href="css/style.css">';
-if (!html.includes(linkTag)) fail('CSS link tag not found in index.html');
+if (!html.includes(linkTag)) fail('CSS link tag not found in game.html');
 html = html.replace(linkTag, '<style>\n' + css + '\n</style>');
 html = html.replace(
   '<title>VEER 5 — Open-World City Sandbox</title>',
