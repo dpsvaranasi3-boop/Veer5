@@ -47,24 +47,28 @@ export async function boot(progress) {
   G.audio = createAudio(G);
   G.audio.setEnabled(G.settings.sound);
   const tick = () => new Promise(r => setTimeout(r, 20));
+  const stage = async (name, fn) => {
+    try { await fn(); }
+    catch (e) { throw new Error(`[${name}] ${e && e.message ? e.message : e}`); }
+  };
   progress(0.05, 'Building city...');
   await tick();
-  await buildWorld(G, (p, msg) => progress(p * 0.7, msg));
+  await stage('world', () => buildWorld(G, (p, msg) => progress(p * 0.7, msg)));
   progress(0.75, 'Creating Veer...');
   await tick();
-  buildPlayer(G);
+  await stage('player', async () => { buildPlayer(G); });
   await tick();
   progress(0.82, 'Spawning traffic...');
   await tick();
-  buildVehicles(G);
+  await stage('vehicles', async () => { buildVehicles(G); });
   await tick();
   progress(0.88, 'Waking up citizens...');
   await tick();
-  buildPeds(G);
+  await stage('peds', async () => { buildPeds(G); });
   await tick();
-  buildActivities(G);
+  await stage('activities', async () => { buildActivities(G); });
   await tick();
-  buildUI(G);
+  await stage('ui', async () => { buildUI(G); });
   await tick();
   progress(0.96, 'Polishing...');
   await tick();

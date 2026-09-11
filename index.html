@@ -17,6 +17,7 @@
       <div class="game-logo small">VEER<span>5</span></div>
       <div class="load-bar"><div id="load-fill"></div></div>
       <div id="load-text">Loading city...</div>
+      <div id="load-log"></div>
     </div>
   </div>
 
@@ -226,11 +227,31 @@
     }
     fill.style.width = '60%';
     text.textContent = 'Building city...';
-    const { boot } = await import('./js/main.js');
+    const BUILD_TAG = 'b4-0911';
+    const logEl = document.getElementById('load-log');
+    const t0 = Date.now();
+    const logLines = [`build ${BUILD_TAG} starting...`];
+    const renderLog = () => { logEl.innerHTML = logLines.slice(-7).join('<br>'); };
+    renderLog();
+    let lastMsg = 'boot';
+    const watchdog = setInterval(() => {
+      const secs = Math.round((Date.now() - t0) / 1000);
+      if (!document.getElementById('loading').classList.contains('hidden')) {
+        logLines.push(`+${secs}s still loading at "${lastMsg}"...`);
+        renderLog();
+      } else clearInterval(watchdog);
+    }, 8000);
+    const { boot } = await import('./js/main.js?v=' + BUILD_TAG);
     await boot((p, msg) => {
       fill.style.width = `${60 + p * 40}%`;
-      if (msg) text.textContent = msg;
+      if (msg) {
+        text.textContent = msg;
+        lastMsg = msg;
+        logLines.push(`+${((Date.now() - t0) / 1000).toFixed(1)}s ${(p * 100).toFixed(0)}% ${msg}`);
+        renderLog();
+      }
     });
+    clearInterval(watchdog);
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   } catch (err) {

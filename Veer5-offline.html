@@ -19,6 +19,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #05070f; f
 #load-fill { height: 100%; width: 5%; background: linear-gradient(90deg, #22d3ee, #a78bfa, #f472b6); border-radius: 6px; transition: width .25s; }
 #load-text { color: #9aa6c7; font-size: 14px; animation: loadpulse 1.1s ease-in-out infinite; }
 @keyframes loadpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+#load-log { margin-top: 10px; font-family: monospace; font-size: 11px; color: #6ee7a0; text-align: left;
+  background: rgba(0,0,0,.4); border-radius: 8px; padding: 8px 10px; min-height: 20px; line-height: 1.5; }
 
 .game-logo { font-size: clamp(56px, 12vw, 110px); font-weight: 900; letter-spacing: 2px; color: #fff;
   text-shadow: 0 0 24px rgba(34,211,238,.8), 0 0 60px rgba(167,139,250,.6), 0 4px 0 #1e1b4b; font-style: italic; }
@@ -132,6 +134,7 @@ body.touch #toast-wrap { bottom: 360px; }
       <div class="game-logo small">VEER<span>5</span></div>
       <div class="load-bar"><div id="load-fill"></div></div>
       <div id="load-text">Loading city...</div>
+      <div id="load-log"></div>
     </div>
   </div>
 
@@ -57248,24 +57251,28 @@ async function boot(progress) {
   G.audio = createAudio(G);
   G.audio.setEnabled(G.settings.sound);
   const tick = () => new Promise(r => setTimeout(r, 20));
+  const stage = async (name, fn) => {
+    try { await fn(); }
+    catch (e) { throw new Error(`[${name}] ${e && e.message ? e.message : e}`); }
+  };
   progress(0.05, 'Building city...');
   await tick();
-  await buildWorld(G, (p, msg) => progress(p * 0.7, msg));
+  await stage('world', () => buildWorld(G, (p, msg) => progress(p * 0.7, msg)));
   progress(0.75, 'Creating Veer...');
   await tick();
-  buildPlayer(G);
+  await stage('player', async () => { buildPlayer(G); });
   await tick();
   progress(0.82, 'Spawning traffic...');
   await tick();
-  buildVehicles(G);
+  await stage('vehicles', async () => { buildVehicles(G); });
   await tick();
   progress(0.88, 'Waking up citizens...');
   await tick();
-  buildPeds(G);
+  await stage('peds', async () => { buildPeds(G); });
   await tick();
-  buildActivities(G);
+  await stage('activities', async () => { buildActivities(G); });
   await tick();
-  buildUI(G);
+  await stage('ui', async () => { buildUI(G); });
   await tick();
   progress(0.96, 'Polishing...');
   await tick();
@@ -57505,12 +57512,31 @@ async function boot(progress) {
   }
   var fill = document.getElementById('load-fill');
   var text = document.getElementById('load-text');
+  var logEl = document.getElementById('load-log');
+  var t0 = Date.now();
+  var logLines = ['offline masterfile starting...'];
+  var lastMsg = 'boot';
+  var renderLog = function () { if (logEl) logEl.innerHTML = logLines.slice(-7).join('<br>'); };
+  renderLog();
+  var watchdog = setInterval(function () {
+    var secs = Math.round((Date.now() - t0) / 1000);
+    if (!document.getElementById('loading').classList.contains('hidden')) {
+      logLines.push('+' + secs + 's still loading at "' + lastMsg + '"...');
+      renderLog();
+    } else clearInterval(watchdog);
+  }, 8000);
   fill.style.width = '70%';
   text.textContent = 'Building city...';
   boot(function (p, msg) {
     fill.style.width = Math.round(70 + p * 30) + '%';
-    if (msg) text.textContent = msg;
+    if (msg) {
+      text.textContent = msg;
+      lastMsg = msg;
+      logLines.push('+' + ((Date.now() - t0) / 1000).toFixed(1) + 's ' + Math.round(p * 100) + '% ' + msg);
+      renderLog();
+    }
   }).then(function () {
+    clearInterval(watchdog);
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   }).catch(function (err) {

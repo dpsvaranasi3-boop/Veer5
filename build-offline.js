@@ -71,12 +71,31 @@ const bootStub = `
   }
   var fill = document.getElementById('load-fill');
   var text = document.getElementById('load-text');
+  var logEl = document.getElementById('load-log');
+  var t0 = Date.now();
+  var logLines = ['offline masterfile starting...'];
+  var lastMsg = 'boot';
+  var renderLog = function () { if (logEl) logEl.innerHTML = logLines.slice(-7).join('<br>'); };
+  renderLog();
+  var watchdog = setInterval(function () {
+    var secs = Math.round((Date.now() - t0) / 1000);
+    if (!document.getElementById('loading').classList.contains('hidden')) {
+      logLines.push('+' + secs + 's still loading at "' + lastMsg + '"...');
+      renderLog();
+    } else clearInterval(watchdog);
+  }, 8000);
   fill.style.width = '70%';
   text.textContent = 'Building city...';
   boot(function (p, msg) {
     fill.style.width = Math.round(70 + p * 30) + '%';
-    if (msg) text.textContent = msg;
+    if (msg) {
+      text.textContent = msg;
+      lastMsg = msg;
+      logLines.push('+' + ((Date.now() - t0) / 1000).toFixed(1) + 's ' + Math.round(p * 100) + '% ' + msg);
+      renderLog();
+    }
   }).then(function () {
+    clearInterval(watchdog);
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   }).catch(function (err) {
