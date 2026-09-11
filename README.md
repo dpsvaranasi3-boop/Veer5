@@ -20,7 +20,20 @@ python3 -m http.server 8000
 ```
 
 Or with Node: `npx serve .` — any static server works.
-> Requires internet access to load Three.js from CDN (tries unpkg → jsDelivr → cdnjs).
+> The served game loads Three.js from the local `js/vendor/` folder first
+> (fully offline), with CDN mirrors as fallback.
+
+## 📦 Offline masterfile (single file, no server, no internet)
+
+**`Veer5-offline.html`** is the whole game in ONE file (~1.4 MB): engine + city +
+code + styles, zero network requests. Copy it to any PC/phone and double-click
+to play — no server, no internet needed.
+
+Regenerate it after any code change with:
+
+```bash
+npm run build-offline
+```
 
 Low-end device? Pick **LOW** graphics on the title screen (auto-selected on mobile).
 
