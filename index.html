@@ -2,31 +2,270 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VEER 5 — Download</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: #0b0f1a; color: #fff;
-    font-family: Arial, Helvetica, sans-serif; text-align: center; padding: 24px;
-  }
-  h1 { font-size: 64px; letter-spacing: 4px; margin-bottom: 12px; }
-  h1 span { color: #22d3ee; }
-  p { color: #9fb0c9; margin-bottom: 32px; font-size: 18px; }
-  a.btn {
-    display: inline-block; background: #22d3ee; color: #06222a;
-    font-size: 24px; font-weight: bold; text-decoration: none;
-    padding: 20px 56px; border-radius: 12px;
-  }
-  a.btn:hover { background: #67e8f9; }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>VEER 5 — Open World City Sandbox</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main>
-    <h1>VEER <span>5</span></h1>
-    <p>Open-World City Sandbox</p>
-    <a class="btn" href="Veer5-game.zip" download="Veer5-game.zip">⬇ Download Game (.zip)</a>
-  </main>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Loading / boot -->
+  <div id="loading" class="overlay">
+    <div class="load-box">
+      <div class="game-logo small">VEER<span>5</span></div>
+      <div class="load-bar"><div id="load-fill"></div></div>
+      <div id="load-text">Loading city...</div>
+      <div id="load-log"></div>
+    </div>
+  </div>
+
+  <!-- Title screen -->
+  <div id="title-screen" class="overlay hidden">
+    <div class="title-bg"></div>
+    <div class="title-content">
+      <div class="game-logo">VEER<span>5</span></div>
+      <div class="tagline">OPEN-WORLD CITY SANDBOX</div>
+      <div class="veer-card">
+        <div class="veer-face"><canvas id="title-face" width="128" height="128"></canvas></div>
+        <div class="veer-info">
+          <div class="veer-name">Play as <b>VEER</b></div>
+          <div class="veer-sub">Free-roam • No story • Pure sandbox</div>
+        </div>
+      </div>
+      <div class="title-buttons">
+        <button id="btn-play" class="big-btn primary">▶ &nbsp;PLAY AS VEER</button>
+        <div class="row">
+          <button id="btn-how" class="btn">❓ HOW TO PLAY</button>
+          <button id="btn-photo" class="btn">📷 VEER'S PHOTO</button>
+          <input type="file" id="photo-input" accept="image/*" class="hidden">
+        </div>
+        <div class="row settings-row">
+          <label>Graphics
+            <select id="title-quality">
+              <option value="low">LOW</option>
+              <option value="medium" selected>MEDIUM</option>
+              <option value="high">HIGH</option>
+            </select>
+          </label>
+          <label>Sound
+            <select id="title-sound">
+              <option value="on" selected>ON</option>
+              <option value="off">OFF</option>
+            </select>
+          </label>
+        </div>
+        <div id="photo-note" class="photo-note">Veer now wears his black-white hero outfit! Upload a close-up face photo for his exact face.</div>
+      </div>
+      <div class="title-footer">WASD + Mouse on PC • Joystick + Touch on Mobile • Gamepad supported</div>
+    </div>
+  </div>
+
+  <!-- Help -->
+  <div id="help-screen" class="overlay hidden">
+    <div class="panel">
+      <h2>HOW TO PLAY</h2>
+      <div class="help-grid">
+        <div><h3>🚶 On foot (PC)</h3>
+          WASD move • Mouse camera • SHIFT sprint • SPACE jump<br>
+          SPACE again mid-air = <b>SUPER JUMP</b><br>
+          F / Left-click = Melee • Q = Dash<br>
+          R / Right-click = Energy Blast • C = Shield<br>
+          E = Enter vehicle • P = Pause • M = Mute
+        </div>
+        <div><h3>🚗 Driving (PC)</h3>
+          W/S accelerate &amp; brake • A/D steer<br>
+          SPACE handbrake • E exit • L headlights<br>
+          Gamepad: sticks + A / X / B / Y
+        </div>
+        <div><h3>📱 Mobile</h3>
+          Left stick move • drag right side for camera<br>
+          Buttons: JUMP, PUNCH, DASH, BLAST, SHIELD, ENTER<br>
+          In vehicle: GAS, BRK, ◀ ▶, EXIT
+        </div>
+        <div><h3>⭐ Wanted</h3>
+          Hurting people, attacking cops = stars.<br>
+          Escape cops' sight to cool down.<br>
+          Busted = respawn at police station.
+        </div>
+        <div><h3>🏁 Activities</h3>
+          Race track (SE), street race (downtown),<br>
+          time trial, stunt ramps, parkour park (center),<br>
+          60 orbs, target range (W), 5 hidden spots.
+        </div>
+        <div><h3>⚡ Abilities</h3>
+          All abilities use Energy (blue bar) and<br>
+          have cooldowns. Energy refills over time<br>
+          and from collectible orbs.
+        </div>
+      </div>
+      <button id="btn-help-close" class="big-btn primary">GOT IT</button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="hud-topleft">
+      <div id="wanted"></div>
+      <div class="bar-wrap"><div class="bar-label">HP</div><div class="bar"><div id="hp-fill"></div></div></div>
+      <div class="bar-wrap"><div class="bar-label">EN</div><div class="bar"><div id="en-fill"></div></div></div>
+      <div id="cash-row">💰 $<span id="cash">0</span> &nbsp; 🔮 <span id="orb-count">0</span>/<span id="orb-total">60</span> &nbsp; 🏆 <span id="score">0</span></div>
+    </div>
+    <div id="hud-topright">
+      <canvas id="minimap" width="220" height="220"></canvas>
+      <div id="clock-weather"><span id="clock">12:00</span> <span id="weather-ico">☀️</span></div>
+    </div>
+    <div id="hud-bottomright">
+      <div id="speedo" class="hidden"><span id="speed-val">0</span><small> km/h</small><div id="veh-name"></div></div>
+      <div id="abilities"></div>
+    </div>
+    <div id="crosshair" class="hidden">◎</div>
+    <div id="prompt" class="hidden"></div>
+    <div id="banner" class="hidden"></div>
+    <div id="banner-sub" class="hidden"></div>
+    <div id="race-panel" class="hidden"></div>
+    <div id="toast-wrap"></div>
+    <div id="damage-vignette"></div>
+    <div id="hud-buttons">
+      <button id="btn-pause" class="icon-btn">⏸</button>
+      <button id="btn-mute" class="icon-btn">🔊</button>
+      <button id="btn-cam" class="icon-btn" title="Camera view">📷</button>
+    </div>
+    <div id="fps" class="hidden">60</div>
+  </div>
+
+  <!-- Mobile controls -->
+  <div id="touch-ui" class="hidden">
+    <div id="joystick"><div id="stick"></div></div>
+    <div id="touch-buttons"></div>
+  </div>
+
+  <!-- Pause -->
+  <div id="pause-menu" class="overlay hidden">
+    <div class="panel">
+      <h2>PAUSED</h2>
+      <div class="pause-stats" id="pause-stats"></div>
+      <div class="col">
+        <button id="btn-resume" class="big-btn primary">RESUME</button>
+        <div class="row settings-row">
+          <label>Graphics
+            <select id="pause-quality">
+              <option value="low">LOW</option>
+              <option value="medium">MEDIUM</option>
+              <option value="high">HIGH</option>
+            </select>
+          </label>
+          <label>Sound
+            <select id="pause-sound">
+              <option value="on">ON</option>
+              <option value="off">OFF</option>
+            </select>
+          </label>
+        </div>
+        <div class="row settings-row">
+          <label>Sensitivity <input type="range" id="sensitivity" min="20" max="200" value="100"></label>
+        </div>
+        <div class="row">
+          <button id="btn-photo2" class="btn">📷 VEER'S PHOTO</button>
+          <button id="btn-respawn" class="btn">🚑 RESPAWN</button>
+        </div>
+        <div class="row">
+          <button id="btn-tp" class="btn">🗺 QUICK TRAVEL</button>
+          <button id="btn-quit" class="btn">TITLE SCREEN</button>
+        </div>
+        <div id="tp-menu" class="hidden">
+          <button data-tp="spawn">City Center</button>
+          <button data-tp="track">Race Track</button>
+          <button data-tp="park">Parkour Park</button>
+          <button data-tp="range">Target Range</button>
+          <button data-tp="beach">Beach</button>
+          <button data-tp="docks">Docks</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Busted / Wasted -->
+  <div id="end-screen" class="overlay hidden">
+    <div id="end-text">BUSTED</div>
+    <div id="end-sub"></div>
+  </div>
+</div>
+
+<script type="module">
+  // Boot loader: fetch Three.js from a CDN (tries several), then start the game.
+  const errLog = [];
+  const showError = (err, hint) => {
+    const msg = '⚠️ ' + (err && err.message ? err.message : err) + (hint ? ' — ' + hint : '');
+    fill.style.background = '#ef4444';
+    text.style.color = '#ff9a9a';
+    text.textContent = msg;
+    errLog.push(msg);
+    const le = document.getElementById('load-log');
+    if (le) le.innerHTML += '<br>❌ ' + msg;
+  };
+  window.addEventListener('error', (e) => showError(e.error || e.message, 'try the latest Chrome/Edge'));
+  try {
+    const THREE_VERSION = '0.160.0';
+    const CDN_URLS = [
+      './js/vendor/three.module.js',
+      `https://unpkg.com/three@${THREE_VERSION}/build/three.module.js`,
+      `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/build/three.module.js`,
+      `https://cdnjs.cloudflare.com/ajax/libs/three.js/${THREE_VERSION}/three.module.min.js`
+    ];
+    const fill = document.getElementById('load-fill');
+    const text = document.getElementById('load-text');
+    let lastErr = null;
+    for (let i = 0; i < CDN_URLS.length; i++) {
+      try {
+        text.textContent = `Loading 3D engine… (mirror ${i + 1}/${CDN_URLS.length})`;
+        fill.style.width = `${10 + i * 20}%`;
+        const THREE = await import(CDN_URLS[i]);
+        window.THREE = THREE;
+        break;
+      } catch (e) { lastErr = e; }
+    }
+    if (!window.THREE) {
+      text.textContent = 'Could not load the 3D engine. Check your internet connection and reload.';
+      throw lastErr;
+    }
+    fill.style.width = '60%';
+    text.textContent = 'Building city...';
+    const BUILD_TAG = 'b5-0911';
+    const logEl = document.getElementById('load-log');
+    const t0 = Date.now();
+    const logLines = [`build ${BUILD_TAG} starting...`];
+    const renderLog = () => { logEl.innerHTML = logLines.slice(-7).join('<br>'); };
+    renderLog();
+    let lastMsg = 'boot';
+    const watchdog = setInterval(() => {
+      const secs = Math.round((Date.now() - t0) / 1000);
+      if (!document.getElementById('loading').classList.contains('hidden')) {
+        logLines.push(`+${secs}s still loading at "${lastMsg}"...`);
+        renderLog();
+      } else clearInterval(watchdog);
+    }, 8000);
+    const { boot } = await import('./js/main.js?v=' + BUILD_TAG);
+    await boot((p, msg) => {
+      fill.style.width = `${60 + p * 40}%`;
+      if (msg) {
+        text.textContent = msg;
+        lastMsg = msg;
+        logLines.push(`+${((Date.now() - t0) / 1000).toFixed(1)}s ${(p * 100).toFixed(0)}% ${msg}`);
+        renderLog();
+      }
+    });
+    clearInterval(watchdog);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('title-screen').classList.remove('hidden');
+  } catch (err) {
+    try { clearInterval(watchdog); } catch (e) {}
+    showError(err, location.protocol === 'file:'
+      ? 'open Veer5-offline.html instead, or serve this folder with a local server'
+      : 'check connection, then reload');
+    throw err;
+  }
+</script>
 </body>
 </html>
