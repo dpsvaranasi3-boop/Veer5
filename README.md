@@ -26,8 +26,8 @@ Low-end device? Pick **LOW** graphics on the title screen (auto-selected on mobi
 
 ## 📷 Veer's photo (his real face in-game)
 
-No photo was attached, so Veer ships with a procedural face — but you can put his
-**real recognizable face** on the character in seconds:
+Veer is styled after his photo — face, warm skin tone, black-and-white hero outfit
+and cat-ear headband. You can also put his **exact real face** on the character:
 
 1. Start the game → title screen (or pause menu) → **📷 VEER'S PHOTO**
 2. Pick any clear front-facing photo of Veer — it's instantly mapped onto the

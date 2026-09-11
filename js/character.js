@@ -21,36 +21,49 @@ export function buildPlayer(G) {
   faceCanvas.width = faceCanvas.height = 256;
   const fx = faceCanvas.getContext('2d');
   function drawDefaultFace() {
-    // skin
-    fx.fillStyle = '#c68e5f'; fx.fillRect(0, 0, 256, 256);
-    // shading
-    const gr = fx.createLinearGradient(0, 0, 0, 256);
-    gr.addColorStop(0, 'rgba(0,0,0,.18)'); gr.addColorStop(0.35, 'rgba(0,0,0,0)');
-    gr.addColorStop(1, 'rgba(0,0,0,.25)');
-    fx.fillStyle = gr; fx.fillRect(0, 0, 256, 256);
-    // hair fringe top
-    fx.fillStyle = '#1c1410'; fx.fillRect(0, 0, 256, 44);
-    fx.beginPath(); fx.moveTo(0, 44);
-    for (let x = 0; x <= 256; x += 16) fx.lineTo(x, 44 + (x % 32 === 0 ? 26 : 10));
+    // Veer: warm brown skin, round soft shading
+    const base = fx.createRadialGradient(128, 130, 30, 128, 128, 190);
+    base.addColorStop(0, '#b38154');
+    base.addColorStop(0.55, '#9e6c43');
+    base.addColorStop(1, '#7d522f');
+    fx.fillStyle = base; fx.fillRect(0, 0, 256, 256);
+    // short black hair with straight fringe
+    fx.fillStyle = '#12100d';
+    fx.fillRect(0, 0, 256, 46);
+    fx.beginPath(); fx.moveTo(0, 46);
+    for (let x = 0; x <= 256; x += 8) fx.lineTo(x, 46 + (Math.abs(x - 128) < 70 ? 22 : 10) + (x % 16 === 0 ? 6 : 0));
     fx.lineTo(256, 0); fx.lineTo(0, 0); fx.fill();
-    // brows
-    fx.fillStyle = '#140f0c';
-    fx.fillRect(42, 96, 66, 13); fx.fillRect(148, 96, 66, 13);
-    // eyes
-    fx.fillStyle = '#fff';
-    fx.beginPath(); fx.ellipse(75, 128, 20, 13, 0, 0, 7); fx.fill();
-    fx.beginPath(); fx.ellipse(181, 128, 20, 13, 0, 0, 7); fx.fill();
-    fx.fillStyle = '#2a1a10';
-    fx.beginPath(); fx.arc(75, 129, 8, 0, 7); fx.fill();
-    fx.beginPath(); fx.arc(181, 129, 8, 0, 7); fx.fill();
-    fx.fillStyle = '#000';
-    fx.beginPath(); fx.arc(75, 129, 3.5, 0, 7); fx.fill();
-    fx.beginPath(); fx.arc(181, 129, 3.5, 0, 7); fx.fill();
-    // nose + smile
-    fx.strokeStyle = '#8a5f3a'; fx.lineWidth = 6;
-    fx.beginPath(); fx.moveTo(128, 140); fx.lineTo(124, 172); fx.lineTo(134, 176); fx.stroke();
-    fx.strokeStyle = '#5e2f22'; fx.lineWidth = 7; fx.lineCap = 'round';
-    fx.beginPath(); fx.arc(128, 178, 42, 0.35, Math.PI - 0.35); fx.stroke();
+    fx.fillRect(0, 40, 24, 120);
+    fx.fillRect(232, 40, 24, 120);
+    // thick brows
+    fx.fillStyle = '#100d0a';
+    fx.beginPath(); fx.ellipse(76, 106, 32, 8, -0.06, 0, 7); fx.fill();
+    fx.beginPath(); fx.ellipse(180, 106, 32, 8, 0.06, 0, 7); fx.fill();
+    // warm dark eyes
+    const eye = (ex) => {
+      fx.fillStyle = '#fff';
+      fx.beginPath(); fx.ellipse(ex, 134, 18, 12, 0, 0, 7); fx.fill();
+      fx.fillStyle = '#4a2c17';
+      fx.beginPath(); fx.arc(ex, 135, 8, 0, 7); fx.fill();
+      fx.fillStyle = '#0a0603';
+      fx.beginPath(); fx.arc(ex, 135, 3.6, 0, 7); fx.fill();
+      fx.fillStyle = 'rgba(255,255,255,.9)';
+      fx.beginPath(); fx.arc(ex - 2.5, 132, 1.8, 0, 7); fx.fill();
+    };
+    eye(76); eye(180);
+    // soft nose
+    fx.fillStyle = 'rgba(90,55,30,.55)';
+    fx.beginPath(); fx.ellipse(128, 162, 9, 12, 0, 0, 7); fx.fill();
+    fx.fillStyle = '#5e3a22';
+    fx.beginPath(); fx.arc(121, 172, 2.6, 0, 7); fx.fill();
+    fx.beginPath(); fx.arc(135, 172, 2.6, 0, 7); fx.fill();
+    // his gentle closed-lip smile
+    fx.strokeStyle = '#57291d'; fx.lineWidth = 6; fx.lineCap = 'round';
+    fx.beginPath(); fx.moveTo(92, 196); fx.quadraticCurveTo(130, 214, 166, 193); fx.stroke();
+    // cheek warmth
+    fx.fillStyle = 'rgba(180,100,70,.25)';
+    fx.beginPath(); fx.ellipse(66, 172, 14, 10, 0, 0, 7); fx.fill();
+    fx.beginPath(); fx.ellipse(190, 172, 14, 10, 0, 7); fx.fill();
   }
   drawDefaultFace();
   const faceTex = new THREE.CanvasTexture(faceCanvas);
@@ -62,7 +75,10 @@ export function buildPlayer(G) {
     const s = Math.max(cw / img.width, ch / img.height);
     const dw = img.width * s, dh = img.height * s;
     fx.fillStyle = '#000'; fx.fillRect(0, 0, cw, ch);
-    fx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2 - ch * 0.06, dw, dh);
+    let pdx = (cw - dw) / 2, pdy = (ch - dh) / 2;
+    if (img.height > img.width * 1.05) pdy += ch * 0.17; // portrait photo: frame the face (upper area)
+    else pdy -= ch * 0.04;
+    fx.drawImage(img, pdx, pdy, dw, dh);
     faceTex.needsUpdate = true;
     // update title preview too
     const prev = document.getElementById('title-face');
@@ -72,7 +88,10 @@ export function buildPlayer(G) {
       pg.save();
       pg.beginPath(); pg.arc(64, 64, 62, 0, 7); pg.clip();
       const s2 = Math.max(128 / img.width, 128 / img.height);
-      pg.drawImage(img, (128 - img.width * s2) / 2, (128 - img.height * s2) / 2, img.width * s2, img.height * s2);
+      const qx = (128 - img.width * s2) / 2;
+      let qy = (128 - img.height * s2) / 2;
+      if (img.height > img.width * 1.05) qy += 128 * 0.17;
+      pg.drawImage(img, qx, qy, img.width * s2, img.height * s2);
       pg.restore();
     }
   };
@@ -95,12 +114,18 @@ export function buildPlayer(G) {
   }
 
   // ---------- Body ----------
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xc68e5f, roughness: 0.7 });
-  const shirtMat = new THREE.MeshStandardMaterial({ color: 0x0e7490, roughness: 0.8 });
-  const jacketMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x2b3446, roughness: 0.9 });
-  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.9 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: 0x1c1410, roughness: 0.95 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0x9e6c43, roughness: 0.7 });
+  const shirtMat = new THREE.MeshStandardMaterial({ color: 0x17171d, roughness: 0.85 });
+  const jacketMat = new THREE.MeshStandardMaterial({ color: 0x101014, roughness: 0.85 });
+  const pantsMat = new THREE.MeshStandardMaterial({ color: 0x17171d, roughness: 0.9 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.6 });
+  const hairMat = new THREE.MeshStandardMaterial({ color: 0x12100d, roughness: 0.95 });
+  const gloveMat = new THREE.MeshStandardMaterial({ color: 0xf2f4f8, roughness: 0.6 });
+  const sockMat = gloveMat;
+  const apronMat = new THREE.MeshStandardMaterial({ color: 0xf5f7fa, roughness: 0.7 });
+  const collarMat = apronMat;
+  const bowMat = new THREE.MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.6 });
+  const skirtMat = new THREE.MeshStandardMaterial({ color: 0x17171d, roughness: 0.85 });
   const mesh = P.mesh = new THREE.Group();
   const B = (w, h, d, mat, x, y, z, parent = mesh) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -109,26 +134,45 @@ export function buildPlayer(G) {
   // legs with hip pivots
   P.legL = new THREE.Group(); P.legL.position.set(-0.14, 0.82, 0); mesh.add(P.legL);
   P.legR = new THREE.Group(); P.legR.position.set(0.14, 0.82, 0); mesh.add(P.legR);
-  B(0.22, 0.62, 0.24, pantsMat, 0, -0.31, 0, P.legL);
-  B(0.22, 0.62, 0.24, pantsMat, 0, -0.31, 0, P.legR);
-  B(0.23, 0.14, 0.34, shoeMat, 0, -0.68, 0.04, P.legL);
-  B(0.23, 0.14, 0.34, shoeMat, 0, -0.68, 0.04, P.legR);
-  // torso: shirt + jacket
+  B(0.23, 0.34, 0.25, pantsMat, 0, -0.17, 0, P.legL);
+  B(0.23, 0.34, 0.25, pantsMat, 0, -0.17, 0, P.legR);
+  B(0.19, 0.24, 0.2, skinMat, 0, -0.44, 0, P.legL);
+  B(0.19, 0.24, 0.2, skinMat, 0, -0.44, 0, P.legR);
+  B(0.2, 0.14, 0.21, sockMat, 0, -0.62, 0, P.legL);
+  B(0.2, 0.14, 0.21, sockMat, 0, -0.62, 0, P.legR);
+  B(0.12, 0.07, 0.04, bowMat, 0, -0.6, 0.12, P.legL);
+  B(0.12, 0.07, 0.04, bowMat, 0, -0.6, 0.12, P.legR);
+  B(0.22, 0.12, 0.34, shoeMat, 0, -0.73, 0.04, P.legL);
+  B(0.22, 0.12, 0.34, shoeMat, 0, -0.73, 0.04, P.legR);
+  // torso: black top + white apron + scallop collar + skirt
   B(0.5, 0.66, 0.3, shirtMat, 0, 1.16, 0);
   B(0.56, 0.6, 0.34, jacketMat, 0, 1.18, -0.02);
-  B(0.2, 0.5, 0.05, shirtMat, 0, 1.15, 0.16); // chest V
+  B(0.34, 0.52, 0.05, apronMat, 0, 1.1, 0.16);   // white apron front
+  B(0.4, 0.1, 0.06, apronMat, 0, 1.38, 0.15);    // apron bib
+  B(0.56, 0.1, 0.38, collarMat, 0, 1.47, 0);     // white collar
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.5, 0.34, 14), skirtMat);
+  skirt.position.set(0, 0.82, 0); skirt.castShadow = true; mesh.add(skirt);
+  const ruffle = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.56, 0.09, 14), sockMat);
+  ruffle.position.set(0, 0.67, 0); ruffle.castShadow = true; mesh.add(ruffle);
   // arms with shoulder pivots
   P.armL = new THREE.Group(); P.armL.position.set(-0.36, 1.44, 0); mesh.add(P.armL);
   P.armR = new THREE.Group(); P.armR.position.set(0.36, 1.44, 0); mesh.add(P.armR);
   B(0.17, 0.6, 0.19, jacketMat, 0, -0.28, 0, P.armL);
   B(0.17, 0.6, 0.19, jacketMat, 0, -0.28, 0, P.armR);
-  B(0.16, 0.16, 0.17, skinMat, 0, -0.62, 0, P.armL);
-  B(0.16, 0.16, 0.17, skinMat, 0, -0.62, 0, P.armR);
+  B(0.18, 0.3, 0.19, gloveMat, 0, -0.55, 0, P.armL);
+  B(0.18, 0.3, 0.19, gloveMat, 0, -0.55, 0, P.armR);
   // head
   const headG = P.head = new THREE.Group(); headG.position.set(0, 1.52, 0); mesh.add(headG);
   B(0.4, 0.46, 0.4, skinMat, 0, 0.26, 0, headG);
   B(0.44, 0.18, 0.44, hairMat, 0, 0.48, -0.02, headG); // hair top
   B(0.44, 0.34, 0.1, hairMat, 0, 0.3, -0.2, headG);   // hair back
+  B(0.46, 0.06, 0.46, bowMat, 0, 0.5, -0.01, headG);  // headband
+  const earL = B(0.13, 0.18, 0.07, sockMat, -0.14, 0.62, 0.0, headG);
+  const earR = B(0.13, 0.18, 0.07, sockMat, 0.14, 0.62, 0.0, headG);
+  earL.rotation.z = 0.25; earR.rotation.z = -0.25;
+  B(0.07, 0.08, 0.075, bowMat, -0.175, 0.71, 0.0, headG); // black ear tips
+  B(0.07, 0.08, 0.075, bowMat, 0.175, 0.71, 0.0, headG);
+  B(0.06, 0.12, 0.18, bowMat, 0.24, 0.42, 0.02, headG);   // side bow
   const face = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.4),
     new THREE.MeshBasicMaterial({ map: faceTex }));
   face.position.set(0, 0.26, 0.205); headG.add(face);
