@@ -1,6 +1,7 @@
 // World: city generation, collisions, sky/day-night, weather, activity venues.
 export async function buildWorld(G, progress) {
   const W = G.world = {};
+  const tick = () => new Promise(r => setTimeout(r, 0));
   const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
 
   // ---------- Layout constants ----------
@@ -18,6 +19,7 @@ export async function buildWorld(G, progress) {
   W.BEACH = { minX: -220, maxX: 220, minZ: 300, maxZ: 470 };
   W.DOCKS = { minX: 40, maxX: 180, minZ: -470, maxZ: -300 };
   progress?.(0.05, 'Lighting the city...');
+  await tick();
 
   // ---------- Collision stores ----------
   G.solids = [];   // {minX,maxX,minZ,maxZ,h}
@@ -179,6 +181,7 @@ export async function buildWorld(G, progress) {
   W.rain = rain; W.rainCount = RAIN_MAX;
 
   progress?.(0.12, 'Paving roads...');
+  await tick();
 
   // ---------- Outer grass ----------
   {
@@ -338,6 +341,7 @@ export async function buildWorld(G, progress) {
   }
 
   progress?.(0.2, 'Raising skyscrapers...');
+  await tick();
 
   // ---------- Buildings ----------
   function windowTexture(base, litRatio) {
@@ -486,6 +490,7 @@ export async function buildWorld(G, progress) {
   W.buildings = buildings;
 
   progress?.(0.32, 'Planting trees & lamps...');
+  await tick();
 
   // ---------- Streetlights (instanced) + glow points ----------
   const lampPos = [];
@@ -620,6 +625,7 @@ export async function buildWorld(G, progress) {
   }
 
   progress?.(0.42, 'Building race track...');
+  await tick();
 
   // ---------- Race track (loop with barriers, curbs, gantry) ----------
   const trackPts = []; // center line for AI + minimap
@@ -736,6 +742,7 @@ export async function buildWorld(G, progress) {
   }
 
   progress?.(0.55, 'Placing ramps & parkour...');
+  await tick();
 
   // ---------- Stunt ramps ----------
   W.ramps = [];
@@ -823,6 +830,7 @@ export async function buildWorld(G, progress) {
   }
 
   progress?.(0.66, 'Setting up target range...');
+  await tick();
 
   // ---------- Target range (west) ----------
   W.rangeTargets = [];
@@ -878,6 +886,7 @@ export async function buildWorld(G, progress) {
   }
 
   progress?.(0.76, 'Hiding collectibles...');
+  await tick();
 
   // ---------- Collectible orbs (instanced) ----------
   W.orbs = [];
@@ -1081,5 +1090,6 @@ export async function buildWorld(G, progress) {
   W.applyQuality();
 
   progress?.(0.85, 'City complete!');
+  await tick();
   return W;
 }

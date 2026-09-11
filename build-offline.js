@@ -80,6 +80,8 @@ const bootStub = `
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('title-screen').classList.remove('hidden');
   }).catch(function (err) {
+    fill.style.background = '#ef4444';
+    text.style.color = '#ff9a9a';
     text.textContent = 'Error starting game: ' + (err && err.message ? err.message : err);
     setTimeout(function () { throw err; }, 0);
   });

@@ -46,19 +46,28 @@ export async function boot(progress) {
   G.input = createInput(G);
   G.audio = createAudio(G);
   G.audio.setEnabled(G.settings.sound);
+  const tick = () => new Promise(r => setTimeout(r, 20));
   progress(0.05, 'Building city...');
+  await tick();
   await buildWorld(G, (p, msg) => progress(p * 0.7, msg));
   progress(0.75, 'Creating Veer...');
+  await tick();
   buildPlayer(G);
-  await new Promise(r => setTimeout(r, 10));
+  await tick();
   progress(0.82, 'Spawning traffic...');
+  await tick();
   buildVehicles(G);
-  await new Promise(r => setTimeout(r, 10));
+  await tick();
   progress(0.88, 'Waking up citizens...');
+  await tick();
   buildPeds(G);
+  await tick();
   buildActivities(G);
+  await tick();
   buildUI(G);
+  await tick();
   progress(0.96, 'Polishing...');
+  await tick();
 
   const M = G.main = {};
 
