@@ -1,0 +1,11 @@
+{
+  "name": "veer5-open-world-city-sandbox",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "VEER 5 — a playable 3D open-world city sandbox game starring Veer. Free-roam, drive, race, abilities, police, day/night, weather. PC + Mobile.",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "check": "node --check js/main.js && node --check js/world.js && node --check js/character.js && node --check js/vehicles.js && node --check js/peds.js && node --check js/activities.js && node --check js/ui.js && node --check js/input.js && node --check js/audio.js && echo OK"
+  },
+  "license": "MIT"
+}
